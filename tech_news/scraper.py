@@ -1,6 +1,7 @@
 import requests
 from time import sleep
 from parsel import Selector
+from tech_news.database import create_news
 
 
 # Requisito 1
@@ -32,7 +33,7 @@ def scrape_next_page_link(html_content):
 
 # Requisito 4
 def scrape_noticia(html_content):
-    selector = Selector(text=html_content)
+    selector = Selector(html_content)
     noticia = {}
     noticia["url"] = selector.css("link[rel=canonical]::attr(href)").get()
     noticia["title"] = selector.css(".entry-title::text").get().strip()
@@ -57,4 +58,19 @@ def scrape_noticia(html_content):
 
 # Requisito 5
 def get_tech_news(amount):
-    """Seu código deve vir aqui"""
+    URL = "https://blog.betrybe.com"
+    link_list = []
+    noticia_list = []
+
+    while len(link_list) < amount:
+        for link in scrape_novidades(fetch(URL)):
+            link_list.append(link)
+
+        URL = scrape_next_page_link(fetch(URL))
+
+    for link in link_list[:amount]:
+        noticia_list.append(scrape_noticia(fetch(link)))
+
+    create_news(noticia_list)
+
+    return noticia_list
