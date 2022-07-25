@@ -32,7 +32,27 @@ def scrape_next_page_link(html_content):
 
 # Requisito 4
 def scrape_noticia(html_content):
-    """Seu código deve vir aqui"""
+    selector = Selector(text=html_content)
+    noticia = {}
+    noticia["url"] = selector.css("link[rel=canonical]::attr(href)").get()
+    noticia["title"] = selector.css(".entry-title::text").get().strip()
+    noticia["timestamp"] = selector.css(".meta-date::text").get()
+    noticia["writer"] = selector.css(".author a::text").get()
+    comments = selector.css(".tithe-block::text").get()
+    if comments is None:
+        comments = 0
+    noticia["comments_count"] = comments
+    noticia["summary"] = ''.join(
+            selector.css(".entry-content > p:nth-of-type(1) *::text").getall()
+        ).strip()
+    noticia["tags"] = selector.css("a[rel=tag]::text").getall()
+    noticia["category"] = selector.css(
+        ".category-style .label::text").get()
+
+    if noticia["comments_count"] is None:
+        noticia["comments_count"] = 0
+
+    return noticia
 
 
 # Requisito 5
